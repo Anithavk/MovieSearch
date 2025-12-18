@@ -9,7 +9,7 @@ export default function Header({
   onSearch,
 }) {
   return (
-    <header className="sticky top-0 z-50 bg-white shadow">
+    <header className="sticky top-0 z-50 bg-gray-900 text-gray-300 shadow">
       <div className="max-w-7xl mx-auto px-4 py-3 space-y-2">
         <h1 className="text-lg font-bold text-center sm:text-left">
           🎬 Movie Search
