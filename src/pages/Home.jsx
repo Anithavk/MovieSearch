@@ -11,23 +11,49 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [type, setType] = useState("");
   const [total, setTotal] = useState(0);
-  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState("");
 
   async function fetchMovies(p = 1) {
-    if (!query) return;
-    try {
-      setError(null);
-      const data = await searchMovies(query, p, type);
-      setMovies(data.Search || []);
-      setTotal(Number(data.totalResults || 0));
-    } catch (err) {
-      setError(err.message);
+    if (!query.trim()) return;
+
+    // ❌ Prevent invalid episode search
+    if (type === "episode") {
       setMovies([]);
+      setTotal(0);
+      setError("Please select a TV series to view episodes");
+      return;
+    }
+
+    try {
+      setError("");
+
+      const data = await searchMovies(query, p, type);
+
+      // ❌ OMDb failure handling
+      if (data.Response === "False") {
+        setMovies([]);
+        setTotal(0);
+        setError(data.Error);
+        return;
+      }
+
+      setMovies(data.Search || []);
+      const totalResults = Number(data.totalResults || 0);
+      setTotal(totalResults);
+      setTotalPages(Math.ceil(totalResults / 10));
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+      setMovies([]);
+      setTotal(0);
     }
   }
 
+  // Fetch when page changes (but only if page is valid)
   useEffect(() => {
-    fetchMovies(page);
+    if (page <= totalPages) {
+      fetchMovies(page);
+    }
   }, [page]);
 
   return (
@@ -48,15 +74,29 @@ export default function Home() {
           <p className="text-red-500 text-center mb-4">{error}</p>
         )}
 
+        {!error && movies.length === 0 && query && (
+          <p className="text-gray-500 text-center mb-4">
+            No results found
+          </p>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {movies.map((movie) => (
             <MovieCard key={movie.imdbID} movie={movie} />
           ))}
         </div>
 
-        {total > 10 && (
-          <Pagination page={page} total={total} onChange={setPage} />
-        )}
+    {type !== "episode" && totalPages > 1 && (
+  <Pagination
+    page={page}
+    totalPages={totalPages}
+    onChange={(p) => {
+      if (p >= 1 && p <= totalPages) {
+        setPage(p);
+      }
+    }}
+  />
+)}
       </main>
 
       <Footer />

@@ -1,60 +1,76 @@
-import React from "react";
+export default function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null;
 
-export default function Pagination({ page, total, onChange }) {
-  const totalPages = Math.ceil(total / 10); // OMDB returns 10 results per page
+  const MAX_VISIBLE = 5;
 
-  if (totalPages <= 1) return null; // no pagination needed
+  let start = Math.max(1, page - 2);
+  let end = Math.min(totalPages, page + 2);
 
-  const prevPage = () => {
-    if (page > 1) onChange(page - 1);
-  };
+  if (page <= 3) {
+    start = 1;
+    end = Math.min(totalPages, MAX_VISIBLE);
+  }
 
-  const nextPage = () => {
-    if (page < totalPages) onChange(page + 1);
-  };
+  if (page >= totalPages - 2) {
+    end = totalPages;
+    start = Math.max(1, totalPages - MAX_VISIBLE + 1);
+  }
 
-  const renderPageNumbers = () => {
-    const pages = [];
-
-    // Display max 5 page numbers at a time
-    let start = Math.max(1, page - 2);
-    let end = Math.min(totalPages, page + 2);
-
-    for (let i = start; i <= end; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => onChange(i)}
-          className={`px-3 py-1 rounded-md border ${
-            i === page
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-200"
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return pages;
-  };
+  const pages = [];
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
 
   return (
-    <div className="flex flex-wrap justify-center items-center gap-2 mt-4">
+    <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
       <button
-        onClick={prevPage}
         disabled={page === 1}
-        className="px-3 py-1 rounded-md border bg-white text-gray-700 border-gray-300 hover:bg-gray-200 disabled:opacity-50"
+        onClick={() => onChange(page - 1)}
+        className="px-3 py-1 border rounded"
       >
         Prev
       </button>
 
-      {renderPageNumbers()}
+      {start > 1 && (
+        <>
+          <button
+            onClick={() => onChange(1)}
+            className="px-3 py-1 border rounded"
+          >
+            1
+          </button>
+          <span className="px-2">...</span>
+        </>
+      )}
+
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          className={`px-3 py-1 border rounded ${
+            p === page ? "bg-blue-500 text-white" : ""
+          }`}
+        >
+          {p}
+        </button>
+      ))}
+
+      {end < totalPages && (
+        <>
+          <span className="px-2">...</span>
+          <button
+            onClick={() => onChange(totalPages)}
+            className="px-3 py-1 border rounded"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
 
       <button
-        onClick={nextPage}
         disabled={page === totalPages}
-        className="px-3 py-1 rounded-md border bg-white text-gray-700 border-gray-300 hover:bg-gray-200 disabled:opacity-50"
+        onClick={() => onChange(page + 1)}
+        className="px-3 py-1 border rounded"
       >
         Next
       </button>
